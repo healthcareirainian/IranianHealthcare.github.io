@@ -1,0 +1,194 @@
+/* Design tokens. Navy masthead + crimson accent, serif (Naskh) headlines over a sans (Vazirmatn) body,
+   the same editorial pairing a hospital-news site uses, rebuilt for Persian/RTL. */
+:root {
+  --navy: #10264a;
+  --navy-2: #1b3a6b;
+  --accent: #b8232f;
+  --accent-ink: #ffffff;
+  --bg: #ffffff;
+  --surface: #f2f6fb;
+  --surface-2: #e6edf6;
+  --ink: #16202e;
+  --ink-2: #4a5566;
+  --ink-3: #6b7585;
+  --rule: #d9e0ea;
+  --link: #1b3a6b;
+  --kicker: #1d4f91;
+  --warn-bg: #fff6e0;
+  --warn-ink: #7a5300;
+  --ok-bg: #e6f4ea;
+  --ok-ink: #1d6b35;
+
+  --font-sans: 'Vazirmatn Variable', Vazirmatn, Tahoma, sans-serif;
+  --font-serif: 'Noto Naskh Arabic Variable', 'Noto Naskh Arabic', 'Vazirmatn Variable', serif;
+
+  --wrap: 1200px;
+  --gutter: 16px;
+  --radius: 6px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --navy: #0a1a33;
+    --navy-2: #15325e;
+    --accent: #d23a45;
+    --bg: #0f1520;
+    --surface: #172131;
+    --surface-2: #1e2b3f;
+    --ink: #e7ecf3;
+    --ink-2: #b4bfcd;
+    --ink-3: #8c98a8;
+    --rule: #2a374b;
+    --link: #9cc0f0;
+    --kicker: #8fb8ee;
+    --warn-bg: #3a2e10;
+    --warn-ink: #f3d08a;
+    --ok-bg: #143322;
+    --ok-ink: #9be0b0;
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.9;
+  font-feature-settings: 'ss01';
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-serif);
+  line-height: 1.5;
+  margin: 0;
+  color: var(--ink);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.wrap {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  inset-inline-start: 8px;
+  top: -40px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  z-index: 100;
+}
+.skip-link:focus {
+  top: 8px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--kicker);
+  outline-offset: 2px;
+}
+
+/* Small shared atoms */
+.kicker {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--kicker);
+}
+.meta {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+}
+.meta b {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+.block-title {
+  font-family: var(--font-sans);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--kicker);
+  margin-block-end: 12px;
+}
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rule-list > li {
+  padding-block: 12px;
+  border-block-end: 1px dotted var(--rule);
+}
+.rule-list > li:last-child {
+  border-block-end: 0;
+}
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.btn:hover {
+  text-decoration: none;
+  filter: brightness(1.08);
+}
+.more-link {
+  display: inline-block;
+  margin-block-start: 12px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}

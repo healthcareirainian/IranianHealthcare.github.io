@@ -1,0 +1,13 @@
+---
+import ListingLayout from '../layouts/ListingLayout.astro';
+import { getArticles } from '../lib/utils';
+
+const lists = (await getArticles()).filter((a) => a.data.type === 'list');
+---
+
+<ListingLayout
+  title="فهرست‌ها"
+  description="فهرست‌ها، رتبه‌بندی‌ها و نکته‌های کلیدی، کوتاه و کاربردی."
+  articles={lists}
+  activeSection="lists"
+/>

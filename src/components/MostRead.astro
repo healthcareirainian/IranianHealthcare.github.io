@@ -1,0 +1,44 @@
+---
+import mostRead from '../data/most-read.json';
+import ArticleCard from './ArticleCard.astro';
+import { getArticles, faNum, url } from '../lib/utils';
+
+// Editor-curated until analytics exist (see IMPLEMENTATION_PLAN.md, phase 5).
+interface Props {
+  limit?: number;
+}
+const { limit = 6 } = Astro.props;
+const all = await getArticles();
+const picked = mostRead.ids
+  .map((id: string) => all.find((a) => a.id === id))
+  .filter((a): a is NonNullable<typeof a> => Boolean(a))
+  .slice(0, limit);
+---
+
+<aside class="panel most-read" aria-labelledby="most-read-title">
+  <h2 id="most-read-title" class="block-title">پربازدیدترین‌ها</h2>
+  <ol class="rule-list">
+    {picked.map((a, i) => (
+      <li>
+        <span class="rank" aria-hidden="true">{faNum(i + 1)}</span>
+        <ArticleCard article={a} variant="compact" showKicker={false} />
+      </li>
+    ))}
+  </ol>
+  <a class="more-link" href={url('/latest/')}>همه مطالب ←</a>
+</aside>
+
+<style>
+  .most-read li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
+  }
+  .rank {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.4;
+  }
+</style>

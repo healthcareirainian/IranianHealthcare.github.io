@@ -1,0 +1,319 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import MostRead from '../../components/MostRead.astro';
+import { getSection, getTopic, clinicalSections } from '../../data/sections';
+import { site } from '../../data/site';
+import {
+  getArticles, formatDate, readingTime, faNum, url, sectionUrl, topicUrl, tagUrl, authorUrl, articleUrl,
+  typeLabel, type Article,
+} from '../../lib/utils';
+
+export const getStaticPaths = (async () => {
+  const all = await getArticles();
+  return all.map((article) => ({ params: { id: article.id }, props: { article, all } }));
+}) satisfies GetStaticPaths;
+
+const { article, all } = Astro.props as { article: Article; all: Article[] };
+const { data } = article;
+const { Content } = await render(article);
+const section = getSection(data.section);
+const topic = data.topic ? getTopic(data.section, data.topic) : undefined;
+const author = await getEntry(data.author);
+const reviewer = data.medicalReviewer ? await getEntry(data.medicalReviewer) : undefined;
+const needsReview = clinicalSections.has(data.section);
+const minutes = readingTime(article.body);
+
+// Related: same topic first, then same section, then shared tags.
+const score = (a: Article) =>
+  (a.data.topic && a.data.topic === data.topic ? 4 : 0) +
+  (a.data.section === data.section ? 2 : 0) +
+  a.data.tags.filter((t) => data.tags.includes(t)).length;
+const related = all
+  .filter((a) => a.id !== article.id)
+  .map((a) => ({ a, s: score(a) }))
+  .filter((x) => x.s > 0)
+  .sort((x, y) => y.s - x.s)
+  .slice(0, 3)
+  .map((x) => x.a);
+
+const pageUrl = new URL(articleUrl(article), Astro.site).href;
+const shareText = encodeURIComponent(data.title);
+const shareUrl = encodeURIComponent(pageUrl);
+const shares = [
+  { label: 'تلگرام', href: `https://t.me/share/url?url=${shareUrl}&text=${shareText}` },
+  { label: 'واتساپ', href: `https://wa.me/?text=${shareText}%20${shareUrl}` },
+  { label: 'ایکس', href: `https://x.com/intent/post?url=${shareUrl}&text=${shareText}` },
+  { label: 'لینکدین', href: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrl}` },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': needsReview ? 'MedicalWebPage' : 'NewsArticle',
+  headline: data.title,
+  description: data.summary,
+  inLanguage: 'fa-IR',
+  datePublished: data.publishedAt.toISOString(),
+  dateModified: (data.updatedAt ?? data.publishedAt).toISOString(),
+  author: author ? { '@type': 'Person', name: author.data.name } : undefined,
+  ...(reviewer && { reviewedBy: { '@type': 'Person', name: reviewer.data.name } }),
+  publisher: { '@type': 'Organization', name: site.name },
+  mainEntityOfPage: pageUrl,
+  citation: data.sources.map((s) => s.url),
+};
+---
+
+<BaseLayout title={data.title} description={data.summary} ogType="article" jsonLd={jsonLd} activeSection={section.slug}>
+  <div class="wrap article-layout">
+    <article class="article" data-pagefind-body>
+      <nav class="crumbs meta" aria-label="مسیر">
+        <a href={url('/')}>خانه</a> / <a href={sectionUrl(section.slug)}>{section.title}</a>
+        {topic && <> / <a href={topicUrl(section.slug, topic.slug)}>{topic.title}</a></>}
+      </nav>
+
+      <header>
+        <span class="kicker">{topic?.title ?? section.title} · {typeLabel[data.type]}</span>
+        <h1>{data.title}</h1>
+        <p class="lede">{data.summary}</p>
+        <div class="byline meta" data-pagefind-ignore>
+          {author && <span>نویسنده: <a href={authorUrl(author.id)}><b>{author.data.name}</b></a></span>}
+          <span>
+            <time datetime={data.publishedAt.toISOString()}>{formatDate(data.publishedAt)}</time>
+            {data.updatedAt && <> · به‌روزرسانی: <time datetime={data.updatedAt.toISOString()}>{formatDate(data.updatedAt)}</time></>}
+          </span>
+          <span>زمان مطالعه: {faNum(minutes)} دقیقه</span>
+        </div>
+        {needsReview && (
+          reviewer ? (
+            <p class="review ok" data-pagefind-ignore>
+              ✓ بازبینی پزشکی: <a href={authorUrl(reviewer.id)}>{reviewer.data.name}</a>
+              {reviewer.data.credentials && <>، {reviewer.data.credentials}</>}
+            </p>
+          ) : (
+            <p class="review pending" data-pagefind-ignore>
+              این مطلب هنوز توسط پزشک بازبینی نشده است و بر پایه منابع معتبر فهرست‌شده در پایان مطلب نوشته شده است.
+            </p>
+          )
+        )}
+      </header>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      {data.sources.length > 0 && (
+        <section class="sources" aria-labelledby="sources-title">
+          <h2 id="sources-title">منابع</h2>
+          <ol>
+            {data.sources.map((s) => (
+              <li dir="auto"><a href={s.url} rel="noopener">{s.title}</a></li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      <aside class="disclaimer" data-pagefind-ignore>
+        این مطلب جنبه آموزشی و اطلاع‌رسانی دارد و جایگزین مشاوره، تشخیص یا درمان پزشکی نیست. برای تصمیم درباره
+        سلامت خود با پزشک مشورت کنید.
+      </aside>
+
+      {data.tags.length > 0 && (
+        <div class="tags" data-pagefind-ignore>
+          {data.tags.map((t) => <a href={tagUrl(t)}>#{t.replace(/ /g, '_')}</a>)}
+        </div>
+      )}
+
+      <div class="share" data-pagefind-ignore>
+        <span class="meta">اشتراک‌گذاری:</span>
+        {shares.map((s) => <a href={s.href} rel="noopener" target="_blank">{s.label}</a>)}
+        <button type="button" class="copy" data-url={pageUrl}>کپی پیوند</button>
+      </div>
+
+      {related.length > 0 && (
+        <section class="related" aria-labelledby="related-title" data-pagefind-ignore>
+          <h2 id="related-title" class="block-title">مطالب مرتبط</h2>
+          <div class="related-grid">
+            {related.map((a) => <ArticleCard article={a} variant="compact" />)}
+          </div>
+        </section>
+      )}
+    </article>
+    <MostRead />
+  </div>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('button.copy').forEach((b) => {
+    b.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.url ?? location.href);
+        b.textContent = 'کپی شد ✓';
+      } catch {
+        b.textContent = 'کپی نشد';
+      }
+    });
+  });
+</script>
+
+<style>
+  .article-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 44px;
+    margin-block-start: 20px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .article-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .article {
+    max-width: 760px;
+  }
+  .crumbs {
+    margin-block-end: 12px;
+  }
+  .crumbs a {
+    color: var(--ink-3);
+  }
+  h1 {
+    font-size: clamp(1.75rem, 4.4vw, 2.6rem);
+    line-height: 1.45;
+    margin-block: 6px 10px;
+  }
+  .lede {
+    font-size: 1.15rem;
+    color: var(--ink-2);
+    margin: 0 0 14px;
+  }
+  .byline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    padding-block: 10px;
+    border-block: 1px solid var(--rule);
+  }
+  .review {
+    font-size: 0.88rem;
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    margin: 14px 0 0;
+  }
+  .review.ok {
+    background: var(--ok-bg);
+    color: var(--ok-ink);
+  }
+  .review.pending {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+  }
+  .prose {
+    font-size: 1.08rem;
+    line-height: 2.05;
+    margin-block-start: 22px;
+  }
+  .prose :global(h2) {
+    font-size: 1.45rem;
+    margin-block: 28px 8px;
+  }
+  .prose :global(h3) {
+    font-size: 1.2rem;
+    margin-block: 20px 6px;
+  }
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-inline-start: 1.4em;
+  }
+  .prose :global(li) {
+    margin-block: 4px;
+  }
+  .prose :global(blockquote) {
+    margin: 18px 0;
+    padding: 4px 16px;
+    border-inline-start: 4px solid var(--accent);
+    background: var(--surface);
+    color: var(--ink-2);
+  }
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    display: block;
+    overflow-x: auto;
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    border: 1px solid var(--rule);
+    padding: 6px 10px;
+    text-align: start;
+  }
+  .prose :global(th) {
+    background: var(--surface);
+  }
+  .sources {
+    margin-block-start: 32px;
+    font-size: 0.9rem;
+  }
+  .sources h2 {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  .sources ol {
+    padding-inline-start: 1.4em;
+  }
+  .sources li {
+    text-align: start;
+    margin-block: 4px;
+  }
+  .sources a {
+    word-break: break-word;
+  }
+  .disclaimer {
+    margin-block-start: 24px;
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    background: var(--surface);
+    border-inline-start: 4px solid var(--kicker);
+    padding: 10px 14px;
+    border-radius: var(--radius);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 20px;
+    font-size: 0.85rem;
+  }
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-block-start: 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .copy {
+    font: inherit;
+    color: var(--link);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 0 10px;
+    cursor: pointer;
+  }
+  .related {
+    margin-block-start: 36px;
+    padding-block-start: 16px;
+    border-block-start: 2px solid var(--accent);
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+</style>

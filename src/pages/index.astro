@@ -1,0 +1,195 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import MostRead from '../components/MostRead.astro';
+import NewsletterBand from '../components/NewsletterBand.astro';
+import { sections } from '../data/sections';
+import { site } from '../data/site';
+import { getArticles, sectionUrl, url } from '../lib/utils';
+
+const all = await getArticles();
+const lead = all.find((a) => a.data.featured === 'lead') ?? all[0];
+const top = all.filter((a) => a.data.featured === 'top' && a !== lead).slice(0, 4);
+const used = new Set([lead, ...top].map((a) => a.id));
+const latest = all.filter((a) => !used.has(a.id)).slice(0, 6);
+const lists = all.filter((a) => a.data.type === 'list').slice(0, 4);
+const bySection = sections
+  .map((s) => ({ section: s, items: all.filter((a) => a.data.section === s.slug).slice(0, 3) }))
+  .filter((x) => x.items.length > 0);
+// "Popular in ..." rails, as on the reference site: two sections with the most content.
+const popularIn = [...bySection].sort((a, b) => b.items.length - a.items.length).slice(0, 2);
+
+const offerings = [
+  { title: 'رویدادها', text: 'همایش‌ها و نشست‌های مدیران و کادر سلامت.' },
+  { title: 'وبینارها', text: 'گفت‌وگوهای آنلاین با متخصصان نظام سلامت.' },
+  { title: 'گزارش‌ها', text: 'گزارش‌های تحلیلی و راهنماهای قابل دانلود.' },
+  { title: 'پادکست', text: 'گفت‌وگو درباره مهم‌ترین مسائل سلامت.' },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: site.name,
+  alternateName: site.nameEn,
+  inLanguage: 'fa-IR',
+  url: new URL(url('/'), Astro.site).href,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: `${new URL(url('/search/'), Astro.site).href}?q={query}`,
+    'query-input': 'required name=query',
+  },
+};
+---
+
+<BaseLayout jsonLd={jsonLd}>
+  <h1 class="visually-hidden">{site.name}: {site.tagline}</h1>
+
+  <div class="wrap layout top">
+    <section class="featured" aria-label="مطالب برگزیده">
+      {lead && <ArticleCard article={lead} variant="lead" headingLevel={2} />}
+      <div class="top-grid">
+        {top.map((a) => <ArticleCard article={a} variant="compact" />)}
+      </div>
+    </section>
+    <MostRead />
+  </div>
+
+  <div class="wrap layout">
+    <section aria-labelledby="latest-title">
+      <h2 id="latest-title" class="block-title rule-title">تازه‌ترین‌ها</h2>
+      <ul class="rule-list feed">
+        {latest.map((a) => <li><ArticleCard article={a} variant="row" /></li>)}
+      </ul>
+      <a class="more-link" href={url('/latest/')}>مطالب بیشتر ←</a>
+    </section>
+
+    <aside class="rail">
+      {lists.length > 0 && (
+        <section class="panel" aria-labelledby="lists-title">
+          <h2 id="lists-title" class="block-title">فهرست‌ها</h2>
+          <ul class="rule-list">
+            {lists.map((a) => <li><ArticleCard article={a} variant="mini" /></li>)}
+          </ul>
+          <a class="more-link" href={url('/lists/')}>همه فهرست‌ها ←</a>
+        </section>
+      )}
+      {popularIn.map(({ section, items }) => (
+        <section class="rail-block" aria-label={`محبوب در ${section.title}`}>
+          <h2 class="block-title">محبوب در {section.title}</h2>
+          <ul class="rule-list">
+            {items.map((a) => <li><ArticleCard article={a} variant="compact" showKicker={false} headingLevel={4} /></li>)}
+          </ul>
+        </section>
+      ))}
+    </aside>
+  </div>
+
+  <NewsletterBand />
+
+  <div class="wrap">
+    <h2 class="block-title rule-title">بخش‌ها</h2>
+    <div class="section-grid">
+      {bySection.map(({ section, items }) => (
+        <section class="section-block" aria-labelledby={`sec-${section.slug}`}>
+          <h3 id={`sec-${section.slug}`} class="section-head">
+            <a href={sectionUrl(section.slug)}>{section.title}</a>
+          </h3>
+          <ul class="rule-list">
+            {items.map((a) => <li><ArticleCard article={a} variant="mini" headingLevel={4} /></li>)}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <h2 class="block-title rule-title offer-title">برنامه‌های سلامت ایران</h2>
+    <div class="offer-grid">
+      {offerings.map((o) => (
+        <div class="panel offer">
+          <h3>{o.title}</h3>
+          <p>{o.text}</p>
+          <span class="soon">به‌زودی</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 36px;
+    margin-block-start: 28px;
+  }
+  @media (max-width: 900px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 28px;
+    margin-block-start: 24px;
+    padding-block-start: 20px;
+    border-block-start: 1px solid var(--rule);
+  }
+  @media (max-width: 600px) {
+    .top-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .rule-title {
+    border-block-end: 2px solid var(--accent);
+    padding-block-end: 6px;
+  }
+  .feed > li {
+    padding-block: 18px;
+  }
+  .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  .section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 28px;
+  }
+  .section-head {
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 800;
+    border-block-end: 1px solid var(--rule);
+    padding-block-end: 6px;
+  }
+  .section-head a {
+    color: var(--ink);
+  }
+  .offer-title {
+    margin-block-start: 44px;
+  }
+  .offer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .offer h3 {
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+  .offer p {
+    color: var(--ink-2);
+    font-size: 0.9rem;
+    margin: 4px 0 10px;
+  }
+  .soon {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    background: var(--surface-2);
+    border-radius: 999px;
+    padding: 2px 10px;
+  }
+</style>

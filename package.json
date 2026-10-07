@@ -1,0 +1,22 @@
+{
+  "name": "iranian-healthcare",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "check:fa": "node scripts/normalize-fa.mjs --check"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/noto-naskh-arabic": "^5.3.0",
+    "@fontsource-variable/vazirmatn": "^5.3.0",
+    "astro": "^7.3.6"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.2"
+  }
+}

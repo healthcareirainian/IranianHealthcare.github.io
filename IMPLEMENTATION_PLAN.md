@@ -1,5 +1,7 @@
 # Implementation plan: IranianHealthcare.github.io
 
+> **Status (2026-10-07):** phases 0–3 built and verified locally (96 pages, Persian search, RSS, sitemap, JSON-LD, 0 broken links). Not yet deployed. Next: Lighthouse pass, then phase 4 (CMS).
+
 A Persian (RTL) healthcare news and information portal, modeled on the structure of
 Becker's Hospital Review: sectioned news, top stories, most read, lists, newsletters, events.
 Content is original Persian writing; we copy the *format*, never the articles.
@@ -20,8 +22,8 @@ Content is original Persian writing; we copy the *format*, never the articles.
 | Concern | Choice | Why |
 |---|---|---|
 | Framework | **Astro** (static output) | Content-first, ships almost no JS, Markdown/MDX content collections with typed frontmatter. |
-| Styling | **Tailwind CSS** with logical properties (`ms-*`, `pe-*`, `start/end`) | RTL works without mirrored CSS. |
-| Font | **Vazirmatn**, self-hosted (`@fontsource-variable/vazirmatn`) | Free, high-quality Persian font; no external request. |
+| Styling | **Plain CSS** with design tokens (`src/styles/global.css`) and logical properties (`margin-inline`, `padding-block`, `inset-inline-start`) | RTL works without mirrored CSS; no build plugin to keep in sync. (Changed from Tailwind during phase 0.) |
+| Fonts | **Vazirmatn** (body/UI) + **Noto Naskh Arabic** (headlines), self-hosted via `@fontsource-variable` | Serif headlines over a sans body, the editorial pairing of the reference site; no external font request. |
 | Dates | `Intl.DateTimeFormat('fa-IR-u-ca-persian')` | Native Jalali dates and Persian digits, no library. Store ISO dates in content. |
 | Search | **Pagefind** | Static full-text search index built after the site builds. |
 | CMS (phase 4) | **Sveltia CMS** (Decap-compatible) at `/admin` | Git-based editing in the browser; can sign in with a GitHub token, so no OAuth server is needed on Pages. |
@@ -112,33 +114,33 @@ Content is original Persian writing; we copy the *format*, never the articles.
 ## 6. Phases
 
 ### Phase 0: Setup
-- [ ] Scaffold Astro + Tailwind + TypeScript; set `site` and `base` for the project-site URL
-- [ ] `<html lang="fa" dir="rtl">`, self-hosted Vazirmatn, base typography (line-height ~1.9 for Persian)
-- [ ] `deploy.yml`: install → build → Pagefind → `actions/deploy-pages`
+- [x] Scaffold Astro + Tailwind + TypeScript; set `site` and `base` for the project-site URL
+- [x] `<html lang="fa" dir="rtl">`, self-hosted Vazirmatn, base typography (line-height ~1.9 for Persian)
+- [x] `deploy.yml`: install → build → Pagefind → `actions/deploy-pages`
 - [ ] Turn on Pages in repo settings with "GitHub Actions" as the source
 
 **Done when:** a "سلام" page is live at the Pages URL with the right font and RTL.
 
 ### Phase 1: Design system and layout
-- [ ] Colour tokens (light and dark), spacing, type scale with Persian digits
-- [ ] Header with 8-section nav and mobile drawer; footer
-- [ ] All card variants and homepage blocks built with placeholder data
+- [x] Colour tokens (light and dark), spacing, type scale with Persian digits
+- [x] Header with 8-section nav and mobile drawer; footer
+- [x] All card variants and homepage blocks built with placeholder data
 
 **Done when:** the homepage layout works at 360 px, 768 px and 1280 px with no horizontal scroll.
 
 ### Phase 2: Content model and pages
-- [ ] Collections and zod schemas from §3; the build fails on a missing alt text, author or reviewer
-- [ ] Every route in §4
-- [ ] `normalize-fa.mjs` runs in CI and fails on Arabic ي/ك in content
-- [ ] Seed content: 3 original articles per section (24) + 2 lists + 3 authors
+- [x] Collections and zod schemas from §3; the build fails on an unknown section/topic or missing author. (No cover images yet, so no alt-text rule; articles without a reviewer show an "awaiting medical review" notice instead of failing the build.)
+- [x] Every route in §4
+- [x] `normalize-fa.mjs` runs in CI and fails on Arabic ي/ك in content
+- [~] Seed content: 15 original, sourced articles across all 8 sections (incl. 2 lists) + editorial-team author. Target is still 3 per section.
 
 **Done when:** every section, article, author and tag page renders from Markdown with no hard-coded content.
 
 ### Phase 3: Search, feeds, SEO
-- [ ] Pagefind search page; check that Persian queries match words with and without half-spaces
-- [ ] RSS feeds (site-wide and per section)
-- [ ] `@astrojs/sitemap`, canonical URLs, Open Graph/Twitter cards (previews for Telegram and WhatsApp)
-- [ ] JSON-LD: `NewsArticle` for news, `MedicalWebPage` with `reviewedBy` for clinical articles
+- [x] Pagefind search page; check that Persian queries match words with and without half-spaces
+- [x] RSS feeds (site-wide and per section)
+- [x] `@astrojs/sitemap`, canonical URLs, Open Graph/Twitter cards (previews for Telegram and WhatsApp)
+- [x] JSON-LD: `NewsArticle` for news, `MedicalWebPage` with `reviewedBy` for clinical articles
 - [ ] Lighthouse target: Performance ≥ 90, Accessibility ≥ 95, SEO 100
 
 ### Phase 4: Editorial workflow

@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/utils';
+const pf = url('/pagefind/');
+---
+
+<BaseLayout title="جستجو" description="جستجو در همه مطالب سلامت ایران.">
+  <div class="wrap search-page">
+    <h1>جستجو</h1>
+    <div id="search" data-pagefind-base={pf}></div>
+    <noscript><p>برای جستجو، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
+  </div>
+  <link rel="stylesheet" href={`${pf}pagefind-ui.css`} />
+  <script is:inline define:vars={{ pf }}>
+    const s = document.createElement('script');
+    s.src = pf + 'pagefind-ui.js';
+    s.onload = () => {
+      const ui = new PagefindUI({
+        element: '#search',
+        showSubResults: true,
+        showImages: false,
+        resetStyles: false,
+        translations: {
+          placeholder: 'جستجو در سلامت ایران…',
+          clear_search: 'پاک کردن',
+          load_more: 'نتایج بیشتر',
+          search_label: 'جستجو در این سایت',
+          filters_label: 'فیلترها',
+          zero_results: 'نتیجه‌ای برای [SEARCH_TERM] پیدا نشد',
+          many_results: '[COUNT] نتیجه برای [SEARCH_TERM]',
+          one_result: '[COUNT] نتیجه برای [SEARCH_TERM]',
+          alt_search: 'نتیجه‌ای برای [SEARCH_TERM] پیدا نشد. نتایج [DIFFERENT_TERM] نمایش داده می‌شود',
+          search_suggestion: 'نتیجه‌ای برای [SEARCH_TERM] پیدا نشد. این‌ها را امتحان کنید:',
+          searching: 'در حال جستجوی [SEARCH_TERM]…',
+        },
+      });
+      const q = new URLSearchParams(location.search).get('q');
+      if (q) ui.triggerSearch(q);
+    };
+    s.onerror = () => {
+      document.getElementById('search').innerHTML =
+        '<p>نمایه جستجو پیدا نشد. جستجو فقط در نسخه ساخته‌شده سایت (npm run build) کار می‌کند.</p>';
+    };
+    document.head.appendChild(s);
+  </script>
+</BaseLayout>
+
+<style>
+  .search-page {
+    max-width: 820px;
+    padding-block: 32px;
+    min-height: 50vh;
+    --pagefind-ui-primary: var(--kicker);
+    --pagefind-ui-text: var(--ink);
+    --pagefind-ui-background: var(--bg);
+    --pagefind-ui-border: var(--rule);
+    --pagefind-ui-tag: var(--surface);
+    --pagefind-ui-font: var(--font-sans);
+  }
+  h1 {
+    font-size: 2rem;
+    margin-block-end: 16px;
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+// Shared shell for section, topic, tag, author and "latest" listings.
+import BaseLayout from './BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import MostRead from '../components/MostRead.astro';
+import Pagination from '../components/Pagination.astro';
+import type { Article } from '../lib/utils';
+
+interface Props {
+  title: string;
+  description?: string;
+  eyebrow?: string;
+  articles: Article[];
+  activeSection?: string;
+  pager?: { prev?: string; next?: string; current: number; last: number };
+}
+const { title, description, eyebrow, articles, activeSection, pager } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} activeSection={activeSection}>
+  <div class="wrap listing">
+    <section>
+      <header class="listing-head">
+        {eyebrow && <span class="kicker">{eyebrow}</span>}
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
+        <slot name="head" />
+      </header>
+      {articles.length === 0 ? (
+        <p class="empty">هنوز مطلبی در این بخش منتشر نشده است.</p>
+      ) : (
+        <ul class="rule-list feed">
+          {articles.map((a) => <li><ArticleCard article={a} variant="row" headingLevel={2} /></li>)}
+        </ul>
+      )}
+      {pager && <Pagination {...pager} />}
+    </section>
+    <MostRead />
+  </div>
+</BaseLayout>
+
+<style>
+  .listing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 36px;
+    margin-block-start: 28px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .listing {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .listing-head {
+    border-block-end: 2px solid var(--accent);
+    padding-block-end: 12px;
+    margin-block-end: 8px;
+  }
+  .listing-head h1 {
+    font-size: clamp(1.7rem, 4vw, 2.2rem);
+  }
+  .listing-head p {
+    color: var(--ink-2);
+    margin: 4px 0 0;
+  }
+  .feed > li {
+    padding-block: 18px;
+  }
+  .empty {
+    color: var(--ink-3);
+    padding-block: 24px;
+  }
+</style>

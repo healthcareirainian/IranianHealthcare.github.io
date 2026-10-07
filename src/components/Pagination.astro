@@ -1,0 +1,31 @@
+---
+import { faNum } from '../lib/utils';
+
+interface Props {
+  prev?: string;
+  next?: string;
+  current: number;
+  last: number;
+}
+const { prev, next, current, last } = Astro.props;
+---
+
+{last > 1 && (
+  <nav class="pager" aria-label="صفحه‌بندی">
+    {prev ? <a href={prev} rel="prev">→ صفحه قبل</a> : <span />}
+    <span class="meta">صفحه {faNum(current)} از {faNum(last)}</span>
+    {next ? <a href={next} rel="next">صفحه بعد ←</a> : <span />}
+  </nav>
+)}
+
+<style>
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-block-start: 24px;
+    padding-block-start: 16px;
+    border-block-start: 1px solid var(--rule);
+    font-weight: 700;
+  }
+</style>

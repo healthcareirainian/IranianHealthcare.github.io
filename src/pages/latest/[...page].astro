@@ -1,0 +1,19 @@
+---
+import type { GetStaticPaths, PaginateFunction } from 'astro';
+import ListingLayout from '../../layouts/ListingLayout.astro';
+import { getArticles, type Article } from '../../lib/utils';
+
+export const getStaticPaths = (async ({ paginate }: { paginate: PaginateFunction }) => {
+  return paginate(await getArticles(), { pageSize: 10 });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props as { page: { data: Article[]; url: { prev?: string; next?: string }; currentPage: number; lastPage: number } };
+---
+
+<ListingLayout
+  title="تازه‌ترین مطالب"
+  description="همه مطالب سلامت ایران، به ترتیب انتشار."
+  articles={page.data}
+  activeSection="latest"
+  pager={{ prev: page.url.prev, next: page.url.next, current: page.currentPage, last: page.lastPage }}
+/>

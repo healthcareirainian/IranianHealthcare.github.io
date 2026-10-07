@@ -1,0 +1,99 @@
+---
+import { sections } from '../data/sections';
+import { site } from '../data/site';
+import { url, sectionUrl } from '../lib/utils';
+const year = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric' }).format(new Date());
+---
+
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <span class="footer-name">{site.name}</span>
+      <p>{site.description}</p>
+      <p class="footer-note">
+        مطالب این وب‌سایت جنبه آموزشی و اطلاع‌رسانی دارد و جایگزین مشاوره، تشخیص یا درمان پزشکی نیست.
+      </p>
+    </div>
+    <nav aria-label="بخش‌ها">
+      <span class="footer-head">بخش‌ها</span>
+      <ul>
+        {sections.map((s) => <li><a href={sectionUrl(s.slug)}>{s.title}</a></li>)}
+      </ul>
+    </nav>
+    <nav aria-label="درباره">
+      <span class="footer-head">درباره</span>
+      <ul>
+        <li><a href={url('/about/')}>درباره ما</a></li>
+        <li><a href={url('/editorial-policy/')}>سیاست تحریریه</a></li>
+        <li><a href={url('/disclaimer/')}>سلب مسئولیت پزشکی</a></li>
+        <li><a href={url('/privacy/')}>حریم خصوصی</a></li>
+        <li><a href={url('/contact/')}>تماس با ما</a></li>
+      </ul>
+    </nav>
+    <nav aria-label="دنبال کنید">
+      <span class="footer-head">دنبال کنید</span>
+      <ul>
+        <li><a href={url('/newsletters/')}>خبرنامه</a></li>
+        <li><a href={url('/rss.xml')}>خوراک RSS</a></li>
+        {site.telegram && <li><a href={site.telegram} rel="noopener">تلگرام</a></li>}
+        <li><a href={site.github} rel="noopener">گیت‌هاب</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="wrap footer-bottom">© {year} {site.name}</div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--navy);
+    color: #c9d4e6;
+    margin-block-start: 48px;
+    padding-block: 36px 16px;
+    font-size: 0.9rem;
+  }
+  .site-footer a {
+    color: #e3eaf5;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 860px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer-brand {
+      grid-column: 1 / -1;
+    }
+  }
+  .footer-name {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .footer-note {
+    font-size: 0.8rem;
+    color: #9fb0c8;
+  }
+  .footer-head {
+    display: block;
+    font-weight: 800;
+    color: #fff;
+    margin-block-end: 8px;
+  }
+  .site-footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    line-height: 2.1;
+  }
+  .footer-bottom {
+    border-block-start: 1px solid #2a4370;
+    margin-block-start: 28px;
+    padding-block-start: 14px;
+    font-size: 0.8rem;
+    color: #9fb0c8;
+  }
+</style>

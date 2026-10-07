@@ -1,0 +1,20 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import ListingLayout from '../../layouts/ListingLayout.astro';
+import { getArticles } from '../../lib/utils';
+
+export const getStaticPaths = (async () => {
+  const authors = await getCollection('authors');
+  return authors.map((author) => ({ params: { id: author.id }, props: { author } }));
+}) satisfies GetStaticPaths;
+
+const { author } = Astro.props as { author: CollectionEntry<'authors'> };
+const articles = (await getArticles()).filter(
+  (a) => a.data.author.id === author.id || a.data.medicalReviewer?.id === author.id,
+);
+---
+
+<ListingLayout title={author.data.name} eyebrow={author.data.role} description={author.data.bio} articles={articles}>
+  {author.data.credentials && <p slot="head" class="meta">{author.data.credentials}</p>}
+</ListingLayout>

@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/utils';
+---
+
+<BaseLayout title="صفحه پیدا نشد" noindex>
+  <div class="wrap nf">
+    <h1>صفحه‌ای که دنبالش بودید پیدا نشد</h1>
+    <p>ممکن است نشانی اشتباه وارد شده یا مطلب جابه‌جا شده باشد.</p>
+    <p><a class="btn" href={url('/')}>بازگشت به صفحه اصلی</a> <a href={url('/search/')}>جستجو در سایت</a></p>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    padding-block: 64px;
+    text-align: center;
+  }
+  .nf a:last-child {
+    margin-inline-start: 16px;
+  }
+</style>

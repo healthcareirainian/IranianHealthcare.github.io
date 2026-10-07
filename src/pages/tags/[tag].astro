@@ -1,0 +1,18 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ListingLayout from '../../layouts/ListingLayout.astro';
+import { getArticles, type Article } from '../../lib/utils';
+
+export const getStaticPaths = (async () => {
+  const all = await getArticles();
+  const tags = [...new Set(all.flatMap((a) => a.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag },
+    props: { tag, articles: all.filter((a) => a.data.tags.includes(tag)) },
+  }));
+}) satisfies GetStaticPaths;
+
+const { tag, articles } = Astro.props as { tag: string; articles: Article[] };
+---
+
+<ListingLayout title={`#${tag.replace(/ /g, '_')}`} eyebrow="برچسب" articles={articles} />

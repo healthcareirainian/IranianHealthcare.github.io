@@ -1,0 +1,81 @@
+---
+import { getEntry } from 'astro:content';
+import { getSection, getTopic } from '../data/sections';
+import { articleUrl, sectionUrl, topicUrl, formatDate, typeLabel, type Article } from '../lib/utils';
+
+interface Props {
+  article: Article;
+  variant?: 'lead' | 'row' | 'compact' | 'mini';
+  showKicker?: boolean;
+  headingLevel?: 2 | 3 | 4;
+}
+
+const { article, variant = 'row', showKicker = true, headingLevel = 3 } = Astro.props;
+const { data } = article;
+const section = getSection(data.section);
+const topic = data.topic ? getTopic(data.section, data.topic) : undefined;
+const author = await getEntry(data.author);
+const H = `h${headingLevel}` as 'h2' | 'h3' | 'h4';
+const kickerHref = topic ? topicUrl(section.slug, topic.slug) : sectionUrl(section.slug);
+---
+
+<article class={`card card-${variant}`}>
+  {showKicker && variant !== 'mini' && (
+    <div class="card-top">
+      <a class="kicker" href={kickerHref}>{topic?.title ?? section.title}</a>
+      {data.type === 'list' && <span class="badge">{typeLabel.list}</span>}
+    </div>
+  )}
+  <H class="card-title"><a href={articleUrl(article)}>{data.title}</a></H>
+  {(variant === 'lead' || variant === 'row') && <p class="card-summary">{data.summary}</p>}
+  {variant !== 'mini' && (
+    <p class="meta">
+      {author && <>نویسنده: <b>{author.data.name}</b> · </>}
+      <time datetime={data.publishedAt.toISOString()}>{formatDate(data.publishedAt)}</time>
+    </p>
+  )}
+</article>
+
+<style>
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-block-end: 4px;
+  }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    padding: 0 8px;
+    line-height: 1.7;
+  }
+  .card-title a {
+    color: var(--ink);
+  }
+  .card-summary {
+    color: var(--ink-2);
+    margin: 6px 0 8px;
+  }
+  .meta {
+    margin: 0;
+  }
+  .card-lead .card-title {
+    font-size: clamp(1.6rem, 3.6vw, 2.3rem);
+    line-height: 1.45;
+  }
+  .card-lead .card-summary {
+    font-size: 1.1rem;
+  }
+  .card-row .card-title {
+    font-size: 1.3rem;
+  }
+  .card-compact .card-title {
+    font-size: 1.08rem;
+  }
+  .card-mini .card-title {
+    font-size: 1rem;
+  }
+</style>

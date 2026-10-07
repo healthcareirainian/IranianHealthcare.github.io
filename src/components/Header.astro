@@ -1,0 +1,283 @@
+---
+import { sections } from '../data/sections';
+import { site } from '../data/site';
+import { url, sectionUrl, topicUrl, formatDateWithWeekday } from '../lib/utils';
+
+interface Props {
+  activeSection?: string;
+}
+const { activeSection } = Astro.props;
+const buildDate = formatDateWithWeekday(new Date());
+---
+
+<header class="site-header">
+  <div class="utility">
+    <div class="wrap utility-row">
+      <span id="today" class="today">{buildDate}</span>
+      <nav aria-label="پیوندهای عمومی" class="utility-links">
+        <a href={url('/about/')}>درباره ما</a>
+        <a href={url('/editorial-policy/')}>سیاست تحریریه</a>
+        <a href={url('/contact/')}>تماس</a>
+        <a href={url('/rss.xml')}>RSS</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="masthead">
+    <div class="wrap masthead-row">
+      <a href={url('/')} class="logo" aria-label={`${site.name}، صفحه اصلی`}>
+        <span class="logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="34" height="34"><rect width="32" height="32" rx="7" fill="#b8232f" /><path d="M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z" fill="#fff" /></svg>
+        </span>
+        <span class="logo-text">
+          <span class="logo-name">{site.name}</span>
+          <span class="logo-tag">{site.tagline}</span>
+        </span>
+      </a>
+      <div class="masthead-actions">
+        <a href={url('/search/')} class="icon-btn" aria-label="جستجو">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2" /><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        </a>
+        <button type="button" class="icon-btn" id="menu-toggle" aria-expanded="false" aria-controls="mega-menu" aria-label="فهرست بخش‌ها">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="section-nav" aria-label="بخش‌ها">
+    <div class="wrap">
+      <ul>
+        <li><a href={url('/latest/')} aria-current={activeSection === 'latest' ? 'page' : undefined}>تازه‌ها</a></li>
+        {sections.map((s) => (
+          <li>
+            <a href={sectionUrl(s.slug)} aria-current={activeSection === s.slug ? 'page' : undefined}>{s.short}</a>
+          </li>
+        ))}
+        <li><a href={url('/lists/')} aria-current={activeSection === 'lists' ? 'page' : undefined}>فهرست‌ها</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div id="mega-menu" class="mega" hidden>
+    <div class="wrap mega-grid">
+      {sections.map((s) => (
+        <div class="mega-col">
+          <a class="mega-head" href={sectionUrl(s.slug)}>{s.title}</a>
+          <ul>
+            {s.topics.map((t) => (
+              <li><a href={topicUrl(s.slug, t.slug)}>{t.title}</a></li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <div class="mega-col">
+        <span class="mega-head">محتوا</span>
+        <ul>
+          <li><a href={url('/latest/')}>تازه‌ترین مطالب</a></li>
+          <li><a href={url('/lists/')}>فهرست‌ها و رتبه‌بندی‌ها</a></li>
+          <li><a href={url('/newsletters/')}>خبرنامه‌ها</a></li>
+          <li><a href={url('/search/')}>جستجو</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <a href={url('/newsletters/')} class="subscribe-bar">
+    عضویت در خبرنامه
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M14 8l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  </a>
+</header>
+
+<script>
+  const today = document.getElementById('today');
+  if (today) {
+    today.textContent = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    }).format(new Date());
+  }
+  const btn = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mega-menu');
+  btn?.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    if (menu) menu.hidden = open;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menu && !menu.hidden) {
+      menu.hidden = true;
+      btn?.setAttribute('aria-expanded', 'false');
+      btn?.focus();
+    }
+  });
+</script>
+
+<style>
+  .utility {
+    background: var(--navy);
+    color: #c9d4e6;
+    font-size: 0.8rem;
+  }
+  .utility-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    min-height: 34px;
+  }
+  .utility-links {
+    display: flex;
+    gap: 16px;
+  }
+  .utility a {
+    color: #c9d4e6;
+  }
+  @media (max-width: 560px) {
+    .utility-links a:not(:first-child) {
+      display: none;
+    }
+  }
+
+  .masthead {
+    background: var(--bg);
+    border-block-end: 1px solid var(--rule);
+  }
+  .masthead-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 76px;
+    gap: 12px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+  }
+  .logo:hover {
+    text-decoration: none;
+  }
+  .logo-mark {
+    display: flex;
+  }
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+  .logo-name {
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  @media (prefers-color-scheme: dark) {
+    .logo-name {
+      color: var(--ink);
+    }
+  }
+  .logo-tag {
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+  @media (max-width: 420px) {
+    .logo-tag {
+      display: none;
+    }
+  }
+  .masthead-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .icon-btn:hover {
+    background: var(--surface);
+  }
+
+  .section-nav {
+    background: var(--bg);
+    border-block-end: 1px solid var(--rule);
+  }
+  .section-nav ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .section-nav ul::-webkit-scrollbar {
+    display: none;
+  }
+  .section-nav a {
+    display: block;
+    white-space: nowrap;
+    padding: 10px 12px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink-2);
+    border-block-end: 3px solid transparent;
+  }
+  .section-nav a:hover {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .section-nav a[aria-current='page'] {
+    color: var(--ink);
+    border-block-end-color: var(--accent);
+  }
+
+  .mega {
+    background: var(--surface);
+    border-block-end: 1px solid var(--rule);
+    padding-block: 20px;
+  }
+  .mega-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .mega-head {
+    display: block;
+    font-weight: 800;
+    color: var(--kicker);
+    margin-block-end: 6px;
+  }
+  .mega ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .mega li a {
+    color: var(--ink-2);
+  }
+
+  .subscribe-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 700;
+    min-height: 42px;
+  }
+  .subscribe-bar:hover {
+    text-decoration: none;
+    filter: brightness(1.06);
+  }
+</style>

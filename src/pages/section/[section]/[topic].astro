@@ -1,0 +1,27 @@
+---
+import type { GetStaticPaths } from 'astro';
+import ListingLayout from '../../../layouts/ListingLayout.astro';
+import { sections, type Section, type Topic } from '../../../data/sections';
+import { getArticles, sectionUrl } from '../../../lib/utils';
+
+export const getStaticPaths = (() =>
+  sections.flatMap((section) =>
+    section.topics.map((topic) => ({ params: { section: section.slug, topic: topic.slug }, props: { section, topic } })),
+  )) satisfies GetStaticPaths;
+
+const { section, topic } = Astro.props as { section: Section; topic: Topic };
+const articles = (await getArticles()).filter((a) => a.data.section === section.slug && a.data.topic === topic.slug);
+---
+
+<ListingLayout title={topic.title} eyebrow={section.title} articles={articles} activeSection={section.slug}>
+  <a slot="head" class="back" href={sectionUrl(section.slug)}>→ بازگشت به {section.title}</a>
+</ListingLayout>
+
+<style>
+  .back {
+    display: inline-block;
+    margin-block-start: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+</style>

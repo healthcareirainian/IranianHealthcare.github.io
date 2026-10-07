@@ -1,0 +1,52 @@
+---
+import type { GetStaticPaths, PaginateFunction } from 'astro';
+import ListingLayout from '../../../layouts/ListingLayout.astro';
+import { sections, type Section } from '../../../data/sections';
+import { getArticles, topicUrl, type Article } from '../../../lib/utils';
+
+export const getStaticPaths = (async ({ paginate }: { paginate: PaginateFunction }) => {
+  const all = await getArticles();
+  return sections.flatMap((section) =>
+    paginate(
+      all.filter((a) => a.data.section === section.slug),
+      { params: { section: section.slug }, props: { section }, pageSize: 10 },
+    ),
+  );
+}) satisfies GetStaticPaths;
+
+const { page, section } = Astro.props as {
+  section: Section;
+  page: { data: Article[]; url: { prev?: string; next?: string }; currentPage: number; lastPage: number };
+};
+---
+
+<ListingLayout
+  title={section.title}
+  eyebrow="بخش"
+  description={section.description}
+  articles={page.data}
+  activeSection={section.slug}
+  pager={{ prev: page.url.prev, next: page.url.next, current: page.currentPage, last: page.lastPage }}
+>
+  <nav slot="head" class="topics" aria-label="زیربخش‌ها">
+    {section.topics.map((t) => <a href={topicUrl(section.slug, t.slug)}>{t.title}</a>)}
+  </nav>
+</ListingLayout>
+
+<style>
+  .topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 12px;
+  }
+  .topics a {
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 2px 12px;
+    color: var(--ink-2);
+  }
+</style>
