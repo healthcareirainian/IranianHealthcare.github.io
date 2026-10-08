@@ -1,34 +1,77 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import FormStyles from '../components/FormStyles.astro';
 import { site } from '../data/site';
 import { url } from '../lib/utils';
 
 const letters = [
-  { title: 'سلامت ایران: هفتگی', text: 'مهم‌ترین مطالب هفته در همه بخش‌ها، هر شنبه.' },
-  { title: 'فناوری سلامت', text: 'هوش مصنوعی، سلامت دیجیتال و پرونده الکترونیک سلامت.' },
-  { title: 'بالینی و دارو', text: 'راهنماهای بالینی، کنترل عفونت و مصرف منطقی دارو.' },
-  { title: 'دندانپزشکی', text: 'سلامت دهان و فناوری‌های نوین دندانپزشکی.' },
+  { id: 'weekly', title: 'سلامت ایران: هفتگی', text: 'مهم‌ترین مطالب هفته در همه بخش‌ها، هر شنبه.' },
+  { id: 'health-it', title: 'فناوری سلامت', text: 'هوش مصنوعی، سلامت دیجیتال و پرونده الکترونیک سلامت.' },
+  { id: 'clinical', title: 'بالینی و دارو', text: 'راهنماهای بالینی، کنترل عفونت و مصرف منطقی دارو.' },
+  { id: 'dentistry', title: 'دندانپزشکی', text: 'سلامت دهان و فناوری‌های نوین دندانپزشکی.' },
 ];
 ---
 
 <BaseLayout title="خبرنامه‌ها" description="عضویت در خبرنامه‌های سلامت ایران.">
+  <FormStyles />
   <div class="wrap nl">
     <h1>خبرنامه‌ها</h1>
-    <p class="lede">
-      خبرنامه‌های سلامت ایران به‌زودی راه‌اندازی می‌شوند. تا آن زمان می‌توانید مطالب تازه را از طریق
-      <a href={url('/rss.xml')}>خوراک RSS</a>{site.telegram && <> یا <a href={site.telegram}>کانال تلگرام</a></>} دنبال کنید.
-    </p>
+    {site.api ? (
+      <p class="lede">خبرنامه‌های مورد نظر را انتخاب کنید و نشانی ایمیل خود را وارد کنید. پیش از ارسال هر خبرنامه، یک ایمیل تأیید برایتان می‌فرستیم.</p>
+    ) : (
+      <p class="lede">
+        خبرنامه‌های سلامت ایران به‌زودی راه‌اندازی می‌شوند. تا آن زمان می‌توانید مطالب تازه را از طریق
+        <a href={url('/rss.xml')}>خوراک RSS</a>{site.telegram && <> یا <a href={site.telegram}>کانال تلگرام</a></>} دنبال کنید.
+      </p>
+    )}
+
+    {site.api ? (
+      <form
+        class="api-form panel signup"
+        data-api={`${site.api}/v1/newsletter/subscribe`}
+        data-extra={JSON.stringify({ site: 'health', lang: 'fa' })}
+        data-msg-sending="در حال ثبت…"
+        data-msg-success="ثبت شد. پیش از ارسال اولین خبرنامه، برای تأیید با شما تماس می‌گیریم."
+        data-msg-sent="ایمیل تأیید فرستاده شد. برای تکمیل عضویت، پیوند داخل ایمیل را باز کنید."
+        data-msg-already="این ایمیل از قبل عضو است. انتخاب خبرنامه‌ها به‌روزرسانی شد."
+        data-msg-email="نشانی ایمیل معتبر نیست."
+        data-msg-rate="درخواست‌های زیادی از این دستگاه ثبت شده است. کمی بعد دوباره امتحان کنید."
+        data-msg-invalid="لطفاً فرم را بررسی کنید."
+        data-msg-error="ثبت انجام نشد. کمی بعد دوباره امتحان کنید."
+        data-msg-offline="ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید."
+      >
+        <fieldset class="checks">
+          <legend>کدام خبرنامه‌ها؟</legend>
+          {letters.map((l, i) => (
+            <label><input type="checkbox" name="topics" value={l.id} checked={i === 0} /> {l.title}</label>
+          ))}
+        </fieldset>
+        <label>
+          ایمیل
+          <input id="nl-email" name="email" type="email" required autocomplete="email" dir="ltr" placeholder="you@example.com" />
+        </label>
+        <label class="hp" aria-hidden="true">وب‌سایت<input name="website" tabindex="-1" autocomplete="off" /></label>
+        <p class="note">ایمیل شما فقط برای ارسال خبرنامه استفاده می‌شود. در هر ایمیل پیوند لغو عضویت هست. <a href={url('/privacy/')}>حریم خصوصی</a></p>
+        <div><button class="btn" type="submit">عضویت</button></div>
+        <p data-status role="status" hidden></p>
+      </form>
+    ) : null}
+
     <div class="grid">
       {letters.map((l) => (
         <div class="panel">
           <h2>{l.title}</h2>
           <p>{l.text}</p>
-          <button class="btn" type="button" disabled aria-disabled="true">به‌زودی</button>
+          {!site.api && <button class="btn" type="button" disabled aria-disabled="true">به‌زودی</button>}
         </div>
       ))}
     </div>
   </div>
 </BaseLayout>
+
+<script>
+  import '../scripts/api-form';
+</script>
 
 <style>
   .nl {
@@ -40,6 +83,10 @@ const letters = [
   .lede {
     color: var(--ink-2);
     max-width: 720px;
+  }
+  .signup {
+    max-width: 640px;
+    margin-block: 20px 28px;
   }
   .grid {
     display: grid;

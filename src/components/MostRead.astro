@@ -1,9 +1,11 @@
 ---
 import mostRead from '../data/most-read.json';
 import ArticleCard from './ArticleCard.astro';
-import { getArticles, faNum, url } from '../lib/utils';
+import { site } from '../data/site';
+import { getArticles, faNum, url, articleUrl } from '../lib/utils';
 
-// Editor-curated until analytics exist (see IMPLEMENTATION_PLAN.md, phase 5).
+// Editor-curated list rendered at build time. When the backend is configured, a small script swaps in
+// the 7-day most-viewed articles (from /v1/popular) once at least 3 articles have views.
 interface Props {
   limit?: number;
 }
@@ -17,16 +19,58 @@ const picked = mostRead.ids
 
 <aside class="panel most-read" aria-labelledby="most-read-title">
   <h2 id="most-read-title" class="block-title">پربازدیدترین‌ها</h2>
-  <ol class="rule-list">
+  <ol class="rule-list" data-most-read data-api={site.api || undefined} data-prefix={url('/articles/')} data-limit={limit}>
     {picked.map((a, i) => (
-      <li>
+      <li data-path={articleUrl(a)}>
         <span class="rank" aria-hidden="true">{faNum(i + 1)}</span>
         <ArticleCard article={a} variant="compact" showKicker={false} />
       </li>
     ))}
   </ol>
+  {site.api && (
+    <template data-most-read-pool>
+      {all.map((a) => (
+        <li data-path={articleUrl(a)}>
+          <span class="rank" aria-hidden="true"></span>
+          <ArticleCard article={a} variant="compact" showKicker={false} />
+        </li>
+      ))}
+    </template>
+  )}
   <a class="more-link" href={url('/latest/')}>همه مطالب ←</a>
 </aside>
+
+<script>
+  const list = document.querySelector<HTMLOListElement>('ol[data-most-read][data-api]');
+  const pool = document.querySelector<HTMLTemplateElement>('template[data-most-read-pool]');
+  if (list && pool) {
+    const { api, prefix, limit } = list.dataset;
+    fetch(`${api}/v1/popular?site=health&days=7&limit=${limit}&prefix=${encodeURIComponent(prefix!)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { items?: { path: string }[] } | null) => {
+        const items = (data?.items ?? [])
+          .map((it) => pool.content.querySelector<HTMLLIElement>(`li[data-path="${CSS.escape(it.path)}"]`))
+          .filter((li): li is HTMLLIElement => Boolean(li));
+        if (items.length < 3) return; // not enough traffic yet: keep the editors' picks
+        // Top up with the editors' picks so the rail keeps its length while traffic is low.
+        const taken = new Set(items.map((li) => li.dataset.path));
+        for (const li of list.querySelectorAll<HTMLLIElement>(':scope > li[data-path]')) {
+          if (items.length >= Number(limit)) break;
+          if (!taken.has(li.dataset.path)) items.push(li);
+        }
+        const fa = new Intl.NumberFormat('fa-IR');
+        list.replaceChildren(
+          ...items.map((li, i) => {
+            const node = li.cloneNode(true) as HTMLLIElement;
+            node.querySelector('.rank')!.textContent = fa.format(i + 1);
+            return node;
+          }),
+        );
+        list.dataset.live = 'true';
+      })
+      .catch(() => {});
+  }
+</script>
 
 <style>
   .most-read li {

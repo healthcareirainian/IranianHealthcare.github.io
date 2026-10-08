@@ -8,4 +8,7 @@ export const site = {
   telegram: '',
   email: '',
   github: 'https://github.com/healthcareirainian/IranianHealthcare.github.io',
+  // Shared backend (C:\git\sites-api). Set PUBLIC_API_BASE at build time (repo variable in CI).
+  // Empty → forms, newsletter and live "most read" fall back to their static versions.
+  api: (import.meta.env.PUBLIC_API_BASE ?? '').replace(/\/$/, ''),
 };

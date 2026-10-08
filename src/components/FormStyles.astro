@@ -1,0 +1,96 @@
+---
+// Shared look for the API-backed forms (contact, newsletter). Global so it reaches every form.
+---
+
+<style is:global>
+  .api-form {
+    display: grid;
+    gap: 14px;
+  }
+  .api-form label {
+    display: grid;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .api-form input:not([type='checkbox']),
+  .api-form select,
+  .api-form textarea {
+    font: inherit;
+    font-weight: 400;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .api-form input:focus-visible,
+  .api-form select:focus-visible,
+  .api-form textarea:focus-visible {
+    outline: 3px solid var(--kicker);
+    outline-offset: 1px;
+  }
+  .api-form .row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 560px) {
+    .api-form .row2 {
+      grid-template-columns: 1fr;
+    }
+  }
+  .api-form .checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    border: 0;
+    padding: 0;
+    margin: 0;
+  }
+  .api-form .checks legend {
+    font-weight: 600;
+    margin-block-end: 6px;
+    padding: 0;
+  }
+  .api-form .checks label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+  .api-form .hp {
+    position: absolute !important;
+    inset-inline-start: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .api-form .note {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .api-form [data-status] {
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .api-form [data-status][data-kind='ok'] {
+    background: var(--ok-bg);
+    color: var(--ok-ink);
+  }
+  .api-form [data-status][data-kind='error'] {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+  }
+  .api-form [data-status][data-kind='busy'] {
+    background: var(--surface);
+    color: var(--ink-2);
+  }
+  .api-form button[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+  }
+</style>

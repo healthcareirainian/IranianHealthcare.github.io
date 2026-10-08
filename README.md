@@ -57,3 +57,11 @@ The homepage "most read" rail is curated in `src/data/most-read.json` until anal
 Push to `main`, then in the repo's **Settings → Pages** set **Source: GitHub Actions**. The site is served at
 `https://healthcareirainian.github.io/IranianHealthcare.github.io/`. If the repo is renamed to
 `healthcareirainian.github.io` or a custom domain is added, set `base: '/'` in `astro.config.mjs`.
+
+## Backend features
+
+Contact form, newsletter sign-up, cookie-free view counts and the live "most read" rail use the shared
+backend in `sites-api` (Cloudflare Worker). Build with `PUBLIC_API_BASE=https://<worker-url>` (in CI: the
+repository variable `PUBLIC_API_BASE`). Without it the site builds exactly as a static site: the contact
+page links to GitHub issues, the newsletter page says "coming soon", and "most read" shows the editors'
+picks from `src/data/most-read.json`.

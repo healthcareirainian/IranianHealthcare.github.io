@@ -50,5 +50,13 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       <slot />
     </main>
     <Footer />
+    {site.api && (
+      <script is:inline define:vars={{ api: site.api }}>
+        // Cookie-free page view (see /privacy/). Skipped when the browser asks not to be tracked.
+        if (navigator.doNotTrack !== '1' && !navigator.globalPrivacyControl && navigator.sendBeacon) {
+          try { navigator.sendBeacon(api + '/v1/views', JSON.stringify({ site: 'health', path: location.pathname })); } catch (e) {}
+        }
+      </script>
+    )}
   </body>
 </html>

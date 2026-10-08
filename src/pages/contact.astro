@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FormStyles from '../components/FormStyles.astro';
+import { site } from '../data/site';
+import { url } from '../lib/utils';
+
+const topics = [
+  { id: 'suggestion', label: 'پیشنهاد موضوع' },
+  { id: 'correction', label: 'گزارش خطا در مطلب' },
+  { id: 'collaboration', label: 'همکاری با تحریریه' },
+  { id: 'other', label: 'سایر' },
+];
+const issues = `${site.github}/issues`;
+---
+
+<BaseLayout title="تماس با ما" description="راه‌های ارتباط با تحریریه سلامت ایران.">
+  <FormStyles />
+  <article class="wrap contact">
+    <h1>تماس با ما</h1>
+    <p class="lede">برای پیشنهاد موضوع، گزارش خطا در مطالب یا همکاری با تحریریه، فرم زیر را پر کنید.</p>
+
+    {site.api ? (
+      <form
+        class="api-form panel"
+        data-api={`${site.api}/v1/forms/health/contact`}
+        data-extra={JSON.stringify({ lang: 'fa' })}
+        data-msg-sending="در حال ارسال…"
+        data-msg-success="پیام شما رسید. ممنون! در صورت نیاز از طریق ایمیل پاسخ می‌دهیم."
+        data-msg-email="نشانی ایمیل معتبر نیست."
+        data-msg-rate="پیام‌های زیادی از این دستگاه ارسال شده است. کمی بعد دوباره امتحان کنید."
+        data-msg-invalid="لطفاً همه بخش‌های الزامی را پر کنید."
+        data-msg-error="ارسال انجام نشد. کمی بعد دوباره امتحان کنید."
+        data-msg-offline="ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید."
+      >
+        <div class="row2">
+          <label>نام<input id="c-name" name="name" required autocomplete="name" maxlength="120" /></label>
+          <label>ایمیل<input id="c-email" name="email" type="email" required autocomplete="email" dir="ltr" /></label>
+        </div>
+        <label>
+          موضوع
+          <select id="c-topic" name="topic">{topics.map((t) => <option value={t.id}>{t.label}</option>)}</select>
+        </label>
+        <label>پیام<textarea id="c-message" name="message" rows="6" required maxlength="4000"></textarea></label>
+        <label class="hp" aria-hidden="true">وب‌سایت<input name="website" tabindex="-1" autocomplete="off" /></label>
+        <p class="note">از اطلاعات شما فقط برای پاسخ به همین پیام استفاده می‌کنیم. <a href={url('/privacy/')}>حریم خصوصی</a></p>
+        <div><button class="btn" type="submit">ارسال پیام</button></div>
+        <p data-status role="status" hidden></p>
+      </form>
+    ) : (
+      <p>
+        تا راه‌اندازی فرم تماس، می‌توانید در مخزن گیت‌هاب سلامت ایران یک <a href={issues}>Issue</a> ثبت کنید.
+      </p>
+    )}
+
+    <p class="alt">ترجیح می‌دهید عمومی بنویسید؟ در <a href={issues} rel="noopener">گیت‌هاب</a> یک Issue ثبت کنید.</p>
+  </article>
+</BaseLayout>
+
+<script>
+  import '../scripts/api-form';
+</script>
+
+<style>
+  .contact {
+    max-width: 760px;
+    padding-block: 32px;
+  }
+  h1 {
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    border-block-end: 2px solid var(--accent);
+    padding-block-end: 8px;
+  }
+  .lede {
+    color: var(--ink-2);
+  }
+  .alt {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+    margin-block-start: 20px;
+  }
+</style>
